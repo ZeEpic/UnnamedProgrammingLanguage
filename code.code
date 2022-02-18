@@ -16,7 +16,7 @@
 
     val result = 10...20
                  -> map { x -> x * 2 }
-                 -> filter { x -> x % 2 == 0 }
+                 -> filter { x -> (x % 2) == 0 }
                  -> do { x -> print(x) }
 
 }
