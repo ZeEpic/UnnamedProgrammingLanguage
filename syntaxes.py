@@ -3,6 +3,7 @@ from typing import Union
 
 from attr import dataclass
 
+import syntax_analyzer
 from lexer import Token
 
 
@@ -33,15 +34,7 @@ class Syntax:
 class VariableSyntax(Syntax):
     pattern = ["VAL", "IDENTIFIER", "EQUALS", "EXPR"]
     id: str
-    equals: list[Token]
-
-
-@dataclass
-class IfStatement(Syntax):
-    pattern = ["IF", "ANY", "COMPARISON", "ANY", "FLOW", "CODE"]
-    comparing: tuple[Token, Token]
-    operator: str
-    code: list[Token]
+    equals: list[Syntax]
 
 
 @dataclass
@@ -49,6 +42,13 @@ class BooleanSyntax(Syntax):
     pattern = ["ANY", "COMPARISON", "ANY"]
     comparing: tuple[Token, Token]
     operator: str
+
+
+@dataclass
+class IfStatement(Syntax):
+    pattern = ["IF", "EXPRESSION", "FLOW", "CODE"]
+    comparison: BooleanSyntax
+    code: list[Token]
 
 
 @dataclass
@@ -83,6 +83,24 @@ class FunctionDefine(Syntax):
     code: list[Syntax]
 
 
+@dataclass
+class FilterSyntax(Syntax):
+    pattern = ["FILTER", "CODE"]
+    code: list[Syntax]
+
+
+@dataclass
+class TransformSyntax(Syntax):
+    pattern = ["TRANSFORM", "CODE"]
+    code: list[Syntax]
+
+
+@dataclass
+class ForEachSyntax(Syntax):
+    pattern = ["DO", "CODE"]
+    code: list[Syntax]
+
+
 def tokens_till(till: str, tokens: list[Token]) -> tuple[list[Token], int]:
     result = []
     for index, token in enumerate(tokens):
@@ -112,13 +130,24 @@ def is_math(tokens: list[Token]) -> bool:
 
 def make_syntax(tokens: list[Token]) -> Union[Syntax, None]:
     if matches(VariableSyntax.pattern, tokens):
-        return VariableSyntax(tokens[1].data, tokens[3:])
+        return VariableSyntax(tokens[1].data, syntax_analyzer.analyze_expression(tokens[3:]))
     elif matches(PrintStatement.pattern, tokens):
         return PrintStatement(tokens[1].data)
+    elif matches(FilterSyntax.pattern, tokens):
+        return FilterSyntax(syntax_analyzer.analyze_scope(tokens[1].data))
+    elif matches(ForEachSyntax.pattern, tokens):
+        return ForEachSyntax(syntax_analyzer.analyze_scope(tokens[1].data))
+    elif matches(TransformSyntax.pattern, tokens):
+        return TransformSyntax(syntax_analyzer.analyze_scope(tokens[1].data))
     elif matches(FunctionCall.pattern, tokens):
-        return FunctionCall(tokens[0].data, tokens[1].data)
+        return FunctionCall(tokens[0].data, tokens[1].data[0].parameters)
     elif matches(IfStatement.pattern, tokens):
-        return IfStatement((tokens[1], tokens[3]), tokens[2].data, tokens[5].data)
+        boolean_expr = tokens[1].data
+        if len(boolean_expr) == 0:
+            raise SyntaxError(f"You must specify a boolean expression for an if statement ({tokens[1]}).")
+        if not isinstance(boolean_expr[0], BooleanSyntax):
+            raise SyntaxError(f"You may only use boolean expressions in an if statement ({tokens[1].data}).")
+        return IfStatement(boolean_expr, tokens[3].data)
     elif matches(BooleanSyntax.pattern, tokens):
         return BooleanSyntax((tokens[0], tokens[2]), tokens[1].data)
     elif is_math(tokens):

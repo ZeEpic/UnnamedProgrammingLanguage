@@ -1,3 +1,5 @@
+from typing import Union
+
 import syntaxes
 from lexer import Token
 from syntaxes import Syntax
@@ -6,13 +8,20 @@ from syntaxes import Syntax
 def analyze_expression(tokens: list[Token]) -> list[Syntax]:
     op_split = syntaxes.split("OPERATOR", tokens)
     if len(op_split) > 1:
-        print([syntaxes.MathematicalSyntax(tokens)])
         return [syntaxes.MathematicalSyntax(tokens)]
-    print([syntaxes.ParameterSyntax(syntaxes.split("SEPARATOR", tokens))])
-    return [syntaxes.ParameterSyntax(syntaxes.split("SEPARATOR", tokens))]
+    send_split = syntaxes.split("SEND", tokens)
+    if len(send_split) > 1:
+        return [syntaxes.make_syntax(x) for x in send_split]
+    compare_split = syntaxes.split("COMPARISON", tokens)
+    if len(compare_split) == 2:
+        return [syntaxes.BooleanSyntax((tokens[0], tokens[2]), tokens[1].data)]
+    separated_split = syntaxes.split("SEPARATOR", tokens)
+    return [syntaxes.ParameterSyntax(separated_split)]
 
 
-def analyze_scope(tokens: list[Token]) -> list[Syntax]:
+def analyze_scope(tokens: list[Union[Token, Syntax]]) -> list[Syntax]:
+    if any([isinstance(x, Syntax) for x in tokens]):
+        return tokens
     separated = syntaxes.split("SEND", tokens)
     if len(separated) == 2:
         syntax = syntaxes.FunctionDefine(syntaxes.split("SEPARATOR", separated[0]), analyze_scope(separated[1]))

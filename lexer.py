@@ -28,7 +28,7 @@ def parse_token(token: str, tokens: dict[str, str]) -> Union[Token, None]:
     if token in tokens:
         return Token(tokens[token], token)
     elif bool(re.fullmatch(r"(\d+(\.\d+)?)\.\.\.(\d+(\.\d+)?)", token)):
-        return Token("RANGE", [int(x) for x in token.split("...")])
+        return Token("RANGE", token.split("..."))
     elif bool(re.fullmatch(r"\d+(\.\d+)?", token)):
         return Token("NUMBER", token)
     elif bool(re.fullmatch(r"[a-zA-Z0-9_]*", token)):
