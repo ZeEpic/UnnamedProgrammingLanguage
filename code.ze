@@ -1,0 +1,19 @@
+val greet = { what, when ->
+    print("Hello, " + what + "! It is currently " + when + ".")
+};
+
+greet("ZeEpic", "5 pm");
+
+val a = 20.75;
+if (a > 10) => {
+    print(a * 11);
+    print("Wow guys look I did a thing.\n" * 5)
+};
+if (a < 1000) => {
+    print("Not a very big number.", a)
+};
+
+val result = 10...20
+             -> map { x -> x * 2 }
+             -> filter { x -> (x % 2) == 0 }
+             -> do { x -> print(x) }

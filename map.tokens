@@ -1,15 +1,14 @@
 return: RETURN
 print: PRINT
-then: THEN
 val: VAL
 and: BOTH
+or: EITHER
 filter: FILTER
 map: TRANSFORM
 do: DO
 if: IF
 =>: FLOW
 ->: SEND
-or: EITHER
 =: EQUALS
 *: OPERATOR
 /: OPERATOR

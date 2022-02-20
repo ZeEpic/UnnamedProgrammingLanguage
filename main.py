@@ -1,6 +1,5 @@
 from lexer import parse_scope
-from syntax_analyzer import analyze_scope
-from syntaxes import Syntax
+from syntaxes import Syntax, analyze_scope, execute_syntax
 
 
 def get_file(path: str) -> str:
@@ -8,7 +7,7 @@ def get_file(path: str) -> str:
         return f.read()
 
 
-code_path = "code.code"
+code_path = "code.ze"
 token_path = "map.tokens"
 parsed_token_map = [(x.split(": ")[0], x.split(": ")[1]) for x in get_file(token_path).splitlines()]
 token_map = dict(parsed_token_map)
@@ -16,7 +15,8 @@ token_map = dict(parsed_token_map)
 
 def interpret(raw: str) -> list[Syntax]:
     tokens = parse_scope(raw, token_map)
-    syntax = analyze_scope(tokens[0].data)
+    syntax = analyze_scope(tokens)
+    execute_syntax(syntax, {})
     return syntax
 
 
